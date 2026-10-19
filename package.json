@@ -1,0 +1,8 @@
+{
+  "name": "uob-claudclass",
+  "private": true,
+  "description": "Dev tooling only (Playwright MCP). The app itself is the single file index.html and has no dependencies.",
+  "devDependencies": {
+    "@playwright/mcp": "0.0.83"
+  }
+}
