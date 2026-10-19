@@ -14,6 +14,7 @@ A single-file, fictitious-bank internal IT PMO Kanban demo/training tool. The wh
 
 - Vanilla HTML/CSS/JS only, all in the one file. No frameworks, bundler, runtime npm packages, CDN scripts, web fonts, or image files (system font stack, inline SVG/Unicode icons).
 - **No persistence:** no localStorage/sessionStorage/IndexedDB/cookies. Refresh resets to seeded data by design (the UI footnote says so).
+- A `Content-Security-Policy` meta tag in `<head>` allows only inline script/style and `connect-src https://formsubmit.co`. If `FORMSUBMIT_ENDPOINT` changes host, update `connect-src` too, or the email call is silently blocked.
 - Only backend is FormSubmit's AJAX JSON endpoint (`FORMSUBMIT_ENDPOINT` in the script's CONFIG section). The email address must appear only in that constant and be sent nowhere else. FormSubmit failure must never break the board (try/catch in `handleSubmit`; card stays, warning toast shown).
 - No `!important`; no `alert()`/`confirm()` (delete uses an inline Yes/No toggle; validation errors are inline).
 - Branding: neutral "IT PMO" text wordmark and blue palette only — no real bank logo/trademarks. Task IDs (`UOB-ITPM-####`) and the email subject prefix are as specified in the brief.
@@ -25,7 +26,9 @@ State-driven render loop. `state = { tasks, filters, nextId, ui }` is the single
 - `state.ui` holds transient UI state that must survive a re-render: `moveOpenId` (card showing the Move select), `confirmDeleteId` (card showing Delete? Yes/No), `dragId`, and `focusKey`. After each render, `focusKey` is matched against `data-focus` attributes to restore keyboard focus, since the DOM was rebuilt — set `state.ui.focusKey` before calling `renderBoard()` when adding new controls.
 - Event handling is **delegated** on `#board` (`wireDragAndDrop`, `wireCardActions`) because cards are re-created on every render. New card controls should use `data-action`/`data-id` and a case in the click handler rather than per-element listeners.
 - Drag highlight (`.drop-target`, `.dragging`) is toggled directly as classes and cleared on `dragend`/re-render; drops and the keyboard "Move ▸" select both go through `moveTask()`.
-- Filters (`applyFilters`) only affect what the board shows; the header summary counts always use all of `state.tasks`.
+- Filters (`applyFilters`) only affect what the board shows; the header summary counts and the Status update text (`buildStatusUpdate`) always use all of `state.tasks`.
+- Colours are CSS custom properties on `:root`, redefined under `@media (prefers-color-scheme: dark)`. Use the tokens (`--ink`, `--surface`, `--signal`, `--on-signal`, …) rather than raw hex so dark mode keeps working.
+- Add Task validation: `showErrors` fills inline errors and the focused `#error-summary`; `validateOnBlur` re-checks a single field on `focusout`.
 - All user strings go through `escapeHtml()` before entering template strings. Keep that for any new field.
 - Add Task flow: `handleSubmit` → `validateTask` → `showErrors` → `addTask` (optimistic render) → `resetForm` → `notifyNewTask` (FormSubmit) → toast. The dialog is a native `<dialog>` kept open (button shows "Sending…") until the request settles.
 - Reference lists (`STATUSES`, `PROJECTS`, `CATEGORIES`, `PRIORITIES`) drive both the selects (`fillSelect` in `init`) and validation; edit them in one place. Priority/status styling relies on CSS classes derived from the lowercase priority (`prio-*`, `pill-*`).

@@ -22,7 +22,11 @@ Version 2 redesigns the board around a status flow bar, relative due dates ("Ove
 - Cards show ID, title, project, assignee, priority, category and a relative due date ("Due in 5 days", "Overdue by 3 days").
 - Drag and drop between columns, or a keyboard "Move" control.
 - Add Task form with inline validation and optimistic UI. IDs follow `UOB-ITPM-####`.
-- Filters by project, assignee and priority, plus a live summary strip.
+- Filters by project, assignee, priority and due date (overdue, next 7 days).
+- Status update: one click drafts a plain-text weekly summary (overdue, blocked, due this week, completed) to copy into an email or chat.
+- Add Task errors are shown inline and in a focused summary that links to each field; fields are checked as you leave them.
+- Follows the system light or dark mode.
+- A Content-Security-Policy meta tag limits the page to inline code and one network destination, FormSubmit.
 - Inline delete confirmation (no browser dialogs).
 - Optional email notification for each new task through [FormSubmit](https://formsubmit.co).
 
