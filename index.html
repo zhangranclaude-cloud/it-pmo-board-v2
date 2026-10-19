@@ -12,6 +12,8 @@
   color-scheme: light dark;
   --on-signal: #ffffff;
   --hatch-gap: #c9d6e8;
+  --wa:        #0e7a4f;   /* WhatsApp action only */
+  --on-wa:     #ffffff;
   --ink:       #0e2a47;   /* navy: text, Done */
   --ink-soft:  #4a5d78;
   --paper:     #f3f6fa;   /* cool page background */
@@ -59,6 +61,8 @@
     --amber:     #f2a865;
     --amber-bg:  #3a2512;
     --hatch-gap: #2a405e;
+    --wa:        #4fd18f;
+    --on-wa:     #062514;
   }
 }
 
@@ -122,6 +126,48 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .swatch-in-progress { background: var(--signal); }
 .swatch-blocked     { background: var(--hatch); }
 .swatch-done        { background: var(--ink); }
+
+/* ===== Project progress panel: one toggle per workstream, filters the board ===== */
+.projects-panel { margin: 0 var(--sp-6); padding: var(--sp-4) 0; border-top: 1px solid var(--rule); }
+.projects-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-1) var(--sp-3); cursor: pointer; list-style: none; }
+.projects-head::-webkit-details-marker { display: none; }
+.projects-head::before { content: "▸"; color: var(--ink-soft); transition: transform .12s; }
+.projects-panel[open] .projects-head { margin-bottom: var(--sp-3); }
+.projects-panel[open] .projects-head::before { transform: rotate(90deg); }
+.projects-head h2 { margin: 0; font-size: var(--fs-md); }
+.projects-hint { margin: 0; font-size: var(--fs-sm); color: var(--ink-soft); }
+.projects {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sp-2) var(--sp-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.proj {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--sp-2) var(--sp-3);
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.proj:hover { border-color: var(--steel); }
+.proj.is-selected { border-color: var(--signal); box-shadow: inset 0 0 0 1px var(--signal); background: var(--pale); }
+.proj-head { display: flex; justify-content: space-between; gap: var(--sp-2); font-size: var(--fs-sm); }
+.proj-name { font-weight: 600; }
+.proj-pct { font-weight: 700; }
+.proj-bar { display: block; height: 6px; border-radius: 3px; background: var(--pale); overflow: hidden; }
+.proj.is-selected .proj-bar { background: var(--surface); }
+.proj-fill { display: block; height: 100%; border-radius: 3px; background: var(--signal); }
+.proj-meta { display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-3); font-size: var(--fs-xs); color: var(--ink-soft); }
+.proj-late { color: var(--late); font-weight: 600; }
+.proj-blocked { display: inline-flex; align-items: center; gap: 5px; color: var(--ink); font-weight: 600; }
+.proj-blocked::before { content: ""; width: 8px; height: 8px; border-radius: 1px; background: var(--hatch); }
 
 /* ===== Filter bar ===== */
 .filters {
@@ -233,6 +279,49 @@ main { padding: var(--sp-5) var(--sp-6); }
 .due-rel { display: block; font-weight: 600; }
 .due-date { display: block; font-size: var(--fs-xs); color: var(--ink-soft); }
 .due.is-late .due-rel { color: var(--late); }
+/* Stage stepper: Backlog → In Progress → Done; Blocked sits on the middle step, hatched */
+.stepper {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: var(--sp-1) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-1);
+  font-size: var(--fs-xs);
+  color: var(--ink-soft);
+  text-align: center;
+}
+.step + .step::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  right: 50%;
+  width: 100%;
+  height: 2px;
+  background: var(--rule);
+}
+.step-dot {
+  position: relative;
+  z-index: 1;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--rule);
+  background: var(--surface);
+}
+.step.is-reached::before { background: var(--signal); }
+.step.is-reached .step-dot { border-color: var(--signal); background: var(--signal); }
+.step.is-current { color: var(--ink); font-weight: 600; }
+.step.is-current .step-dot { background: var(--surface); box-shadow: 0 0 0 3px var(--pale); }
+.step.is-current:not(.is-blocked) .step-dot { border-color: var(--signal); }
+.step.is-blocked .step-dot { border-color: var(--ink); background: var(--hatch); }
+.stepper.is-done .step.is-current .step-dot { background: var(--signal); }
 .card-foot { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1) var(--sp-3); font-size: var(--fs-xs); }
 .prio { display: inline-flex; align-items: center; gap: 5px; font-weight: 600; }
 .prio::before { content: ""; width: 8px; height: 8px; border-radius: 1px; background: var(--steel); }
@@ -271,7 +360,57 @@ main { padding: var(--sp-5) var(--sp-6); }
 .move-select { font-size: var(--fs-xs); padding: 2px var(--sp-1); width: auto; }
 
 /* ===== Footer note ===== */
-.footnote { text-align: center; font-size: var(--fs-sm); color: var(--ink-soft); padding: 0 var(--sp-4) var(--sp-5); margin: 0; }
+.footnote { text-align: center; font-size: var(--fs-sm); color: var(--ink-soft); padding: 0 var(--sp-4) 96px; margin: 0; } /* room for the chat button */
+
+/* ===== Help chat widget (bottom right): spoken greeting + WhatsApp link ===== */
+.chat {
+  position: fixed;
+  right: var(--sp-5);
+  bottom: var(--sp-5);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--sp-3);
+}
+.chat-fab {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--signal);
+  color: var(--on-signal);
+  box-shadow: 0 6px 18px rgba(14, 42, 71, .3);
+  cursor: pointer;
+}
+.chat-fab:hover { background: var(--signal-dk); }
+.chat-panel {
+  width: min(320px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  box-shadow: 0 16px 40px rgba(14, 42, 71, .25);
+}
+.chat-panel[hidden] { display: none; }
+.chat-head { display: flex; justify-content: space-between; align-items: center; }
+.chat-head h2 { margin: 0; font-size: var(--fs-md); }
+.chat-bubble {
+  align-self: flex-start;
+  margin: 0;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: 12px 12px 12px 2px;
+  background: var(--pale);
+  font-size: var(--fs-md);
+}
+.chat-note { margin: 0; font-size: var(--fs-sm); color: var(--ink-soft); }
+.chat-wa { text-align: center; text-decoration: none; background: var(--wa); border-color: var(--wa); color: var(--on-wa); }
+.chat-wa:hover { background: var(--wa); border-color: var(--wa); filter: brightness(.92); }
 
 /* ===== Modal (native dialog) ===== */
 dialog {
@@ -318,7 +457,7 @@ form .full { grid-column: 1 / -1; }
 .toast-region {
   position: fixed;
   right: var(--sp-4);
-  bottom: var(--sp-4);
+  bottom: 96px;   /* above the chat button */
   display: flex;
   flex-direction: column;
   gap: var(--sp-2);
@@ -338,24 +477,27 @@ form .full { grid-column: 1 / -1; }
 @keyframes toast-in { from { opacity: 0; transform: translateY(6px); } }
 @media (prefers-reduced-motion: reduce) {
   .toast { animation: none; }
+  .projects-head::before { transition: none; }
   .column { transition: none; }
 }
 
 /* ===== Responsive: two lanes below 1000px, one below 640px ===== */
 @media (max-width: 999px) {
-  .board { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .board, .projects { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 639px) {
   .app-header { grid-template-columns: 1fr; padding: var(--sp-4) var(--sp-4) var(--sp-3); }
   .header-actions { justify-content: stretch; }
   .header-actions .btn { flex: 1 1 0; }
-  .filters { margin: 0 var(--sp-4); }
+  .filters, .projects-panel { margin: 0 var(--sp-4); }
+  .projects { grid-template-columns: 1fr; }
   .filters .field { min-width: 0; flex: 1 1 40%; }
   .filters .field-grow { flex-basis: 100%; order: -1; }
   .filters-note { margin-left: 0; }
   main { padding: var(--sp-4); }
   .board { grid-template-columns: 1fr; }
   .column { min-height: 0; }
+  .chat { right: var(--sp-4); bottom: var(--sp-4); }
   .flow-seg { min-width: 4.25rem; }
   form { grid-template-columns: 1fr; }
 }
@@ -375,6 +517,15 @@ form .full { grid-column: 1 / -1; }
   </div>
   <section class="summary" id="summary" aria-label="Board summary"></section>
 </header>
+
+<!-- ===== Project progress (rendered by renderProjects) ===== -->
+<details class="projects-panel" id="projects-panel" open>
+  <summary class="projects-head">
+    <h2>Project progress</h2>
+    <span class="projects-hint" id="projects-hint"></span>
+  </summary>
+  <ul class="projects" id="projects" aria-label="Project progress"></ul>
+</details>
 
 <!-- ===== Filter bar ===== -->
 <section class="filters" aria-label="Board filters">
@@ -483,6 +634,24 @@ form .full { grid-column: 1 / -1; }
   </div>
 </dialog>
 
+<!-- ===== Help chat widget: opens a help panel, speaks a greeting, links to WhatsApp ===== -->
+<div class="chat" id="chat">
+  <section class="chat-panel" id="chat-panel" role="dialog" aria-labelledby="chat-title" hidden>
+    <div class="chat-head">
+      <h2 id="chat-title">IT PMO help</h2>
+      <button type="button" class="icon-btn" id="chat-close" aria-label="Close help chat">×</button>
+    </div>
+    <p class="chat-bubble">How can I help you?</p>
+    <p class="chat-note" id="chat-note"></p>
+    <a class="btn chat-wa" id="chat-wa" target="_blank" rel="noopener noreferrer">Chat on WhatsApp</a>
+  </section>
+  <button type="button" class="chat-fab" id="chat-toggle" aria-expanded="false" aria-controls="chat-panel" aria-label="Open help chat">
+    <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false">
+      <path fill="currentColor" d="M12 3C6.5 3 2 6.8 2 11.5c0 2.4 1.2 4.6 3.1 6.1L4 21l4.3-1.9c1.2.4 2.4.6 3.7.6 5.5 0 10-3.8 10-8.5S17.5 3 12 3zm-4.5 9.8a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6zm4.5 0a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6zm4.5 0a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6z"/>
+    </svg>
+  </button>
+</div>
+
 <!-- ===== Toast region (screen-reader friendly) ===== -->
 <div class="toast-region" id="toasts" aria-live="polite" aria-atomic="false"></div>
 
@@ -496,6 +665,12 @@ form .full { grid-column: 1 / -1; }
    ===================================================================== */
 const FORMSUBMIT_ENDPOINT = "https://formsubmit.co/ajax/ranzhen123456@hotmail.com";
 
+/* Help chat: WhatsApp number in international format without "+" (wa.me requirement). */
+const WHATSAPP_NUMBER = "6512345678";
+const WHATSAPP_DISPLAY = "+65 1234 5678";   // non-breaking spaces keep the number on one line
+const CHAT_GREETING = "How can I help you?";
+const WHATSAPP_TEXT = "Hi, I have a question about the IT PMO board.";
+
 /* ===== Constants / reference data ===== */
 const STATUSES   = ["Backlog", "In Progress", "Blocked", "Done"];
 const STATUS_HINT = {
@@ -504,6 +679,8 @@ const STATUS_HINT = {
   "Blocked": "Waiting on dependency, vendor or approval",
   "Done": "Completed / closed"
 };
+/* Process stages shown on each card; Blocked is shown on the In Progress step. */
+const STAGES = ["Backlog", "In Progress", "Done"];
 const PROJECTS   = ["Core Banking Upgrade", "Digital Channels", "Cybersecurity Uplift", "Data & Analytics", "Infrastructure & Cloud", "Vendor Management"];
 const CATEGORIES = ["Application Development", "Infrastructure", "Cybersecurity", "Data", "Compliance", "Vendor"];
 const PRIORITIES = ["Critical", "High", "Medium", "Low"];
@@ -614,6 +791,20 @@ function applyFilters(tasks) {
 }
 
 /* ===== Rendering ===== */
+function renderStepper(task) {
+  const blocked = task.status === "Blocked";
+  const current = blocked ? 1 : STAGES.indexOf(task.status);
+  const steps = STAGES.map((stage, i) => {
+    const label = blocked && i === current ? "Blocked" : stage;
+    const cls = ["step",
+      i <= current ? "is-reached" : "",
+      i === current ? "is-current" : "",
+      blocked && i === current ? "is-blocked" : ""].filter(Boolean).join(" ");
+    return `<li class="${cls}"${i === current ? ' aria-current="step"' : ""}><span class="step-dot" aria-hidden="true"></span>${escapeHtml(label)}</li>`;
+  }).join("");
+  return `<ol class="stepper${task.status === "Done" ? " is-done" : ""}" aria-label="Stage">${steps}</ol>`;
+}
+
 function renderCard(task) {
   const overdue = isOverdue(task);
   const confirming = state.ui.confirmDeleteId === task.id;
@@ -642,6 +833,7 @@ function renderCard(task) {
       </div>
       <h3 class="card-title">${escapeHtml(task.title)}</h3>
       <p class="card-project">${escapeHtml(task.project)}</p>
+      ${renderStepper(task)}
       <div class="card-people">
         <span class="assignee"><span class="initials" aria-hidden="true">${escapeHtml(initials(task.assignee))}</span>${escapeHtml(task.assignee)}</span>
         <span class="due${overdue ? " is-late" : ""}">
@@ -674,6 +866,39 @@ function renderSummary() {
     <ul class="flow">${segments}</ul>`;
 }
 
+/* Per-workstream progress; like the header summary it counts all tasks, ignoring filters. */
+function projectStats(project) {
+  const tasks = state.tasks.filter(t => t.project === project);
+  const done = tasks.filter(t => t.status === "Done").length;
+  return {
+    total: tasks.length,
+    done,
+    pct: tasks.length ? Math.round(done / tasks.length * 100) : 0,
+    overdue: tasks.filter(isOverdue).length,
+    blocked: tasks.filter(t => t.status === "Blocked").length
+  };
+}
+
+function renderProjects() {
+  document.getElementById("projects").innerHTML = PROJECTS.map((project, i) => {
+    const s = projectStats(project);
+    const selected = state.filters.project === project;
+    const doneText = s.total ? `${s.done} of ${s.total} done` : "No tasks";
+    const late = s.overdue ? `<span class="proj-late">${s.overdue} overdue</span>` : "";
+    const blocked = s.blocked ? `<span class="proj-blocked">${s.blocked} blocked</span>` : "";
+    return `<li>
+        <button type="button" class="proj${selected ? " is-selected" : ""}" data-project="${escapeHtml(project)}" data-focus="proj-${i}" aria-pressed="${selected}">
+          <span class="proj-head"><span class="proj-name">${escapeHtml(project)}</span><span class="proj-pct">${s.pct}% done</span></span>
+          <span class="proj-bar" aria-hidden="true"><span class="proj-fill" style="width: ${s.pct}%"></span></span>
+          <span class="proj-meta"><span>${doneText}</span>${late}${blocked}</span>
+        </button>
+      </li>`;
+  }).join("");
+  document.getElementById("projects-hint").textContent = state.filters.project
+    ? "Showing one project. Select it again to show all."
+    : "Select a project to filter the board.";
+}
+
 function renderBoard() {
   const visible = applyFilters(state.tasks);
   const board = document.getElementById("board");
@@ -696,12 +921,13 @@ function renderBoard() {
   }).join("");
 
   renderSummary();
+  renderProjects();
   document.getElementById("filter-note").textContent =
     `Showing ${visible.length} of ${state.tasks.length} tasks`;
 
   // Restore keyboard focus to the control the user just used (DOM was rebuilt).
   if (state.ui.focusKey) {
-    const el = board.querySelector(`[data-focus="${CSS.escape(state.ui.focusKey)}"]`);
+    const el = document.querySelector(`[data-focus="${CSS.escape(state.ui.focusKey)}"]`);
     if (el) el.focus();
     state.ui.focusKey = null;
   }
@@ -784,6 +1010,34 @@ async function copyStatus() {
     text.select();
     showToast("Copy blocked by the browser. The text is selected: press Ctrl+C.", "warn");
   }
+}
+
+/* ===== Help chat widget ===== */
+/* Spoken greeting via the browser's Web Speech API; skipped silently where unsupported. */
+function speakGreeting() {
+  if (!("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(CHAT_GREETING);
+  utterance.lang = "en-US";
+  window.speechSynthesis.speak(utterance);
+}
+
+function openChat() {
+  document.getElementById("chat-panel").hidden = false;
+  const toggle = document.getElementById("chat-toggle");
+  toggle.setAttribute("aria-expanded", "true");
+  toggle.setAttribute("aria-label", "Close help chat");
+  speakGreeting();
+  document.getElementById("chat-wa").focus();
+}
+
+function closeChat() {
+  document.getElementById("chat-panel").hidden = true;
+  const toggle = document.getElementById("chat-toggle");
+  toggle.setAttribute("aria-expanded", "false");
+  toggle.setAttribute("aria-label", "Open help chat");
+  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+  toggle.focus();
 }
 
 /* ===== Toasts ===== */
@@ -1029,6 +1283,32 @@ function init() {
     document.getElementById("filter-assignee").value = "";
     document.getElementById("filter-due").value = "";
     renderBoard();
+  });
+
+  // Project panel starts collapsed on phones so the board stays near the top.
+  if (window.matchMedia("(max-width: 639px)").matches) document.getElementById("projects-panel").open = false;
+
+  // Project progress rows toggle the project filter (kept in sync with the Project select).
+  document.getElementById("projects").addEventListener("click", e => {
+    const btn = e.target.closest("[data-project]");
+    if (!btn) return;
+    const project = btn.dataset.project;
+    state.filters.project = state.filters.project === project ? "" : project;
+    document.getElementById("filter-project").value = state.filters.project;
+    state.ui.focusKey = btn.dataset.focus;
+    renderBoard();
+  });
+
+  document.getElementById("chat-wa").href =
+    `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_TEXT)}`;
+  document.getElementById("chat-note").textContent = `Chat with the PMO team on WhatsApp at ${WHATSAPP_DISPLAY}.`;
+  document.getElementById("chat-toggle").addEventListener("click", () => {
+    if (document.getElementById("chat-panel").hidden) openChat();
+    else closeChat();
+  });
+  document.getElementById("chat-close").addEventListener("click", closeChat);
+  document.getElementById("chat").addEventListener("keydown", e => {
+    if (e.key === "Escape" && !document.getElementById("chat-panel").hidden) closeChat();
   });
 
   document.getElementById("open-status").addEventListener("click", openStatus);

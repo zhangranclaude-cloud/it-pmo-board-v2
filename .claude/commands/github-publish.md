@@ -1,5 +1,5 @@
 ---
-description: Push this project to GitHub, write the README and About section, enable Pages, add CI/CD, and run a security scan
+description: Push this project to GitHub, capture a Playwright MCP screenshot for the README, write the README and About section, enable Pages, add CI/CD, and run a security scan
 argument-hint: <github-repo-url or owner/repo> [branch=main]
 ---
 
@@ -27,12 +27,21 @@ Print a short findings table (check, result). If anything fails, fix it or stop 
 - Commit with clear messages (follow the commit attribution lines from the session's system reminder).
 - `git push -u origin <branch>`; on network errors only, retry up to 4 times with 2s/4s/8s/16s backoff.
 
-## 3a. Screenshot (do this before writing the README)
-Capture the app and save it as `docs/screenshot.png` (the only image file allowed in the repo; never reference it from `index.html`).
-- Prefer the Playwright MCP tools (`mcp__playwright__*`, from `.mcp.json`; load them with ToolSearch "playwright"). Navigate to the live Pages URL if reachable. Otherwise serve the repo locally (`python3 -m http.server 8765 --bind 127.0.0.1` in the background, kill it afterwards) and open `http://localhost:8765/index.html`: the MCP server blocks `file://` URLs and would silently screenshot a blank page. Check `browser_navigate` did not return an error, resize the viewport to 1400x820, wait for the cards to render, then take a viewport screenshot. Write it to a scratch path first (not straight over `docs/screenshot.png`), view it, and only copy it into `docs/` once it shows the board (a blank capture is about 5 KB).
-- If the MCP tools are not available in this session (servers connect only at session start), fall back to the Playwright library with the preinstalled Chromium (`executablePath: '/opt/pw-browsers/chromium'`; never run `playwright install`): launch headless, same viewport, wait for `.card`, `page.screenshot({ path: 'docs/screenshot.png' })`, and check there were no `pageerror` events.
-- Open the PNG and confirm it shows all four columns with cards and no error state. Keep it under about 300 KB. Reshoot whenever the UI changes.
-- Security: the screenshot must show only the seeded demo data. Do not capture the Add Task dialog with real input, and never the email address or any browser chrome.
+## 3a. Screenshot with Playwright MCP, posted to the README (required, before writing the README)
+Capture the current app with the **Playwright MCP tools** and post it in `README.md`. `docs/screenshot.png` is the only image file allowed in the repo; never reference it from `index.html`. Reshoot on every publish so the README never shows a stale UI.
+
+1. **Load the tools.** ToolSearch `"+playwright"` and load `browser_navigate`, `browser_resize`, `browser_wait_for`, `browser_take_screenshot`, `browser_close` (`mcp__playwright__*`, registered in `.mcp.json`). If none are found, the server is not connected: MCP servers only connect at session start, in the project folder, after the user approves the `playwright` server. Then use the fallback in step 6 and say so in the final report.
+2. **Pick the URL.** If this publish changes the UI, shoot the local copy so the README matches the commit. Otherwise, use the live Pages URL if it is reachable. The MCP server blocks `file://` (it silently captures a blank page), so for the local copy serve the repo over HTTP in the background: `python -m http.server 8765 --bind 127.0.0.1` (Windows) or `python3 …` (macOS/Linux). Open `http://127.0.0.1:8765/index.html` and stop the server afterwards.
+3. **Capture.**
+   - `browser_resize` to width 1400, height 820.
+   - `browser_navigate` to the URL. Stop if it returns an error.
+   - `browser_wait_for` the text `Backlog`, so the cards have rendered.
+   - `browser_take_screenshot` with `type: "png"` and `filename: "readme-screenshot.png"`, viewport only (not full page).
+   - `browser_close`.
+4. **Check before using it.** The tool result gives the saved file's path, which is in the MCP output folder, not the repo. Open the PNG and confirm it shows the header, the project progress panel and all four columns with cards, with no dialog or error state. A blank capture is about 5 KB; keep it under about 300 KB. Only then copy it over `docs/screenshot.png`.
+5. **Post it in the README.** `README.md` must contain `![IT PMO Project Board screenshot](docs/screenshot.png)` directly under the **Live demo** link. Add it if it is missing, and never point it at an external URL. Commit the new PNG together with the README.
+6. **Fallback** (only when the MCP tools are not loaded): use the Playwright library from `node_modules` with the installed Chrome (`channel: 'chrome'`) or, in the cloud container, `executablePath: '/opt/pw-browsers/chromium'`. Never run `playwright install`. Use the same viewport, wait for `.card`, screenshot, and check there were no `pageerror` events. Then do steps 4–5, and report "screenshot taken with the Playwright library, not MCP".
+- **Security:** the screenshot must show only the seeded demo data. Never capture the Add Task dialog with real input, the email address, or browser chrome.
 
 ## 3. README
 Create or update `README.md` (keep any accurate existing content, fix what is stale). Include:
@@ -67,4 +76,4 @@ Create `.github/workflows/ci.yml` (minimal permissions, pinned major versions of
 ## 7. Final security re-scan and report
 - Re-run the scan from step 1 on the final tree, including the new workflow and README. The workflow must not echo secrets or send repo contents anywhere.
 - Push the remaining commits.
-- Final report (short): repo URL, Pages URL, what was automated vs what the user must do by hand (Pages setting, About values if API blocked, FormSubmit activation), the scan result table, and anything not verified.
+- Final report (short): repo URL, Pages URL, how the README screenshot was captured (Playwright MCP or library fallback), what was automated vs what the user must do by hand (Pages setting, About values if API blocked, FormSubmit activation), the scan result table, and anything not verified.

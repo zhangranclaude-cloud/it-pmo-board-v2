@@ -1,1 +1,10 @@
 node_modules/
+
+# Security reports describe vulnerabilities; never commit them to the public repo
+security-report_*.docx
+
+# HyperFrames video projects (large media, local only)
+videos/
+
+# Office lock files
+~$*

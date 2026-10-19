@@ -3,6 +3,7 @@
   "private": true,
   "description": "Dev tooling only (Playwright MCP). The app itself is the single file index.html and has no dependencies.",
   "devDependencies": {
-    "@playwright/mcp": "0.0.83"
+    "@playwright/mcp": "0.0.83",
+    "docx": "^9.12.0"
   }
 }

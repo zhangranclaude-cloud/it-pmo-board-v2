@@ -19,12 +19,15 @@ Version 2 redesigns the board around a status flow bar, relative due dates ("Ove
 ## Features
 
 - Four columns: Backlog, In Progress, Blocked, Done, with live counts and a header flow bar sized by task count.
+- Project progress panel: one bar per workstream with % done and overdue/blocked counts. Select a project to filter the board, select it again to show all. Collapsed by default on phones.
+- Each card shows a stage stepper (Backlog → In Progress → Done); a blocked task sits on the middle step, hatched and labelled Blocked.
 - Cards show ID, title, project, assignee, priority, category and a relative due date ("Due in 5 days", "Overdue by 3 days").
 - Drag and drop between columns, or a keyboard "Move" control.
 - Add Task form with inline validation and optimistic UI. IDs follow `UOB-ITPM-####`.
 - Filters by project, assignee, priority and due date (overdue, next 7 days).
 - Status update: one click drafts a plain-text weekly summary (overdue, blocked, due this week, completed) to copy into an email or chat.
 - Add Task errors are shown inline and in a focused summary that links to each field; fields are checked as you leave them.
+- Help chat button (bottom right): opens a help panel, says "How can I help you?" aloud using the browser's speech synthesis, and links to WhatsApp (+65 1234 5678) with a pre-filled message. Change `WHATSAPP_NUMBER` near the top of the script to use another number.
 - Follows the system light or dark mode.
 - A Content-Security-Policy meta tag limits the page to inline code and one network destination, FormSubmit.
 - Inline delete confirmation (no browser dialogs).
